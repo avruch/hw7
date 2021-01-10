@@ -83,13 +83,6 @@ int student_clone(void *element, void **output) {
 				}
 	strcpy(new_student->name,clone->name);
 	new_student->id = clone->id;
-	//clone->courses_list beeing copied to new_student->courses_list. 
-	/*
-	struct node * current=list_begin(clone->courses_list); 
-	while(current) {
-		list_push_back(new_student->courses_list,list_get(current));
-		current=list_next(current);
-	}*/
 	new_student->courses_list=clone->courses_list;
 	*output= new_student;
 	return 0;
