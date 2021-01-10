@@ -6,7 +6,7 @@
 #define	MIN_GRADE 0
 #define	MAX_GRADE 100
 
-/*linked list function declarations*/
+/*linked list  user function declarations*/
 int course_clone(void *element, void **output);
 void course_destroy(void *element);
 
@@ -129,7 +129,7 @@ void grades_destroy(struct grades *grades){
 	free(grades);
 }
 /**
- * @brief find a student by his id.
+ * @brief find a student by his or her id.
  * @returns A pointer to the specific student ,or NULL if doesn't exist.
  */
 static struct student* find_student(struct grades *grades,int student_id) {
@@ -144,7 +144,10 @@ static struct student* find_student(struct grades *grades,int student_id) {
 	}
 	return NULL;
 }
-
+/**
+ * @brief find a course by it name.
+ * @returns A pointer to the specific course ,or NULL if doesn't exist.
+ */
 static struct course* find_course(struct list *courses_list,const char *course_name) {
 	struct course *new_course;
 	struct node *current=list_begin(courses_list);
@@ -182,7 +185,10 @@ int grades_add_student(struct grades *grades,const char *student_name,int studen
 			
 			return 1;
 		}
-	return list_push_back(grades->students_list, new_student);
+		int val=list_push_back(grades->students_list, new_student);
+		free(new_student->name);
+		free(new_student);
+	return val;
 }
 
 /**
@@ -213,18 +219,22 @@ int grades_add_grade(struct grades *grades, const char *name,
 	if (!new_course) {
 		return 1;
 	}
-		new_course->name =(const char*)malloc(sizeof(char)*(strlen(name)+1));
-			if(!(new_course->name)) {
+	new_course->name =(const char*)malloc(sizeof(char)*(strlen(name)+1));
+		if(!(new_course->name)) {
 					return 1;
 			}
-		strcpy(new_course->name,name);
-		new_course->grade = grade;
-		return list_push_back(student->courses_list, new_course);
+	strcpy(new_course->name,name);
+	new_course->grade = grade;
+	int val=list_push_back(student->courses_list, new_course);
+	free(new_course->name);
+	free(new_course);
+	return val;
 }
-
-
-
-
+	
+/**
+ * @brief calculates the average of the grades in given list of courses
+ * @returns the calculated average .
+ */
 static float avg_list(struct list *list) 
 {
 	int len = list_size(list);
@@ -298,6 +308,7 @@ int grades_print_student(struct grades *grades, int id){
 				printf(", ");
 			}
 		}
+		printf("\n");
 		return 0;
 }
 
@@ -328,7 +339,7 @@ int grades_print_all(struct grades *grades){
 			printf("student %s failed\n", student->name);
 		}
 		current= list_next(current);
-		printf("\n");
+		
 	}
 	return 0;
 }
