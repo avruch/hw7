@@ -72,7 +72,7 @@ void course_destroy(void *element) {
  * @Returns 0 on success 
  */
 int student_clone(void *element, void **output) {
-	struct student *clone=(struct student *)element;
+	struct student *clone=(struct student*)element;
 	struct student *new_student=(struct student*)malloc(sizeof(struct student));
 			if(!new_student) {
 				return 1;
@@ -84,12 +84,13 @@ int student_clone(void *element, void **output) {
 	strcpy(new_student->name,clone->name);
 	new_student->id = clone->id;
 	//clone->courses_list beeing copied to new_student->courses_list. 
-	int m=list_size(clone->courses_list);
+	/*
 	struct node * current=list_begin(clone->courses_list); 
-	for(int i=0;i<m;i++) {
+	while(current) {
 		list_push_back(new_student->courses_list,list_get(current));
 		current=list_next(current);
-	}
+	}*/
+	new_student->courses_list=clone->courses_list;
 	*output= new_student;
 	return 0;
 }
@@ -163,13 +164,12 @@ return NULL;
  * the same "id" already exists in "grades"
  */
 int grades_add_student(struct grades *grades,const char *student_name,int student_id){
+	if (find_student(grades,student_id)){
+		return 1;
+	}
 	struct student *new_student=(struct student*)malloc(sizeof(struct student));
 		if(!(new_student)) {
 			return 1;
-		};
-	new_student=find_student(grades,student_id);
-	if (new_student){
-		return 1;
 		}
 	new_student->id=student_id;
 	new_student->name =(const char*)malloc(sizeof(char)*(strlen(student_name)+1));
@@ -179,9 +179,10 @@ int grades_add_student(struct grades *grades,const char *student_name,int studen
 	strcpy(new_student->name,student_name);
 	new_student->courses_list = list_init(course_clone,course_destroy); 
 	if(!(new_student->courses_list)) {
+			
 			return 1;
-		};
-	return list_push_back(grades->students_list, &new_student);
+		}
+	return list_push_back(grades->students_list, new_student);
 }
 
 /**
@@ -193,7 +194,7 @@ int grades_add_student(struct grades *grades,const char *student_name,int studen
  */
 int grades_add_grade(struct grades *grades, const char *name,
                      int id, int grade)
-{
+{ 
 	if(!grades){
 		return 1;
 	}
@@ -201,27 +202,24 @@ int grades_add_grade(struct grades *grades, const char *name,
 		return 1;
 	}
 	struct student *student;
-	student = find_student(grades,id);
-		if (!student){
-			return 1;
-		}	
-
+	if(!find_student(grades,id)){
+		return 1;
+	}	
+	student=find_student(grades,id);
+	if(find_course(student->courses_list,name)){
+		return 1;
+		}
 	struct course *new_course = (struct course*)malloc(sizeof(struct course));
 	if (!new_course) {
 		return 1;
 	}
-	new_course=find_course(student->courses_list,name);
-		if (new_course){
-			free(new_course);//maybe?
-			return 1;
-		}
 		new_course->name =(const char*)malloc(sizeof(char)*(strlen(name)+1));
 			if(!(new_course->name)) {
 					return 1;
 			}
 		strcpy(new_course->name,name);
 		new_course->grade = grade;
-		return list_push_back(student->courses_list, &new_course);
+		return list_push_back(student->courses_list, new_course);
 }
 
 
@@ -290,11 +288,11 @@ int grades_print_student(struct grades *grades, int id){
 		if (!student){
 			return 1;
 		}	
-		printf("%s %d:", student->name,student->id);
+		printf("%s %d: ", (student->name),(student->id));
 		struct node *current=list_begin(student->courses_list);
 		while(current){
 			struct course *new_course = (struct course*)list_get(current);
-			printf("%s %d", new_course->name,new_course->grade);
+			printf("%s %d", (new_course->name),(new_course->grade));
 			current= list_next(current);
 			if (current){
 				printf(", ");
@@ -327,9 +325,10 @@ int grades_print_all(struct grades *grades){
 		student=(struct student*)list_get(current);
 		val=grades_print_student(grades, student->id);
 		if (val){
-			printf("student %s failed", student->name);
+			printf("student %s failed\n", student->name);
 		}
 		current= list_next(current);
+		printf("\n");
 	}
 	return 0;
 }
